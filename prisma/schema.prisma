@@ -9,3 +9,73 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id              Int                @id @default(autoincrement())
+  firstName       String
+  lastName        String
+  username        String             @unique
+  password        String
+  email           String             @unique
+  profileImg      String?
+  coverImg        String?
+  bio             String?
+  createdAt       DateTime           @default(now())
+  Post            Post[]
+  followedUsers   UserRelationship[] @relation("followedUser")
+  followedByUsers UserRelationship[] @relation("followedByUser")
+  CommentLikes    CommentLike[]
+  Retweets        Retweet[]
+}
+
+model Post {
+  id          Int        @id @default(autoincrement())
+  contentText String
+  contentImg  String?
+  createdAt   DateTime   @default(now())
+  user        User       @relation(fields: [userId], references: [id])
+  userId      Int
+  Comments    Comment[]
+  PostLikes   PostLike[]
+  Retweets    Retweet[]
+}
+
+model Comment {
+  id           Int           @id @default(autoincrement())
+  contentText  String
+  contentImg   String?
+  createdAt    DateTime      @default(now())
+  post         Post          @relation(fields: [postId], references: [id])
+  postId       Int
+  CommentLikes CommentLike[]
+}
+
+model UserRelationship {
+  id               Int   @id @default(autoincrement())
+  followedUser     User? @relation("followedUser", fields: [followedUserId], references: [id])
+  followedUserId   Int?
+  followedByUser   User? @relation("followedByUser", fields: [followedByUserId], references: [id])
+  followedByUserId Int?
+}
+
+model PostLike {
+  id     Int  @id @default(autoincrement())
+  post   Post @relation(fields: [postId], references: [id])
+  postId Int
+}
+
+model CommentLike {
+  id            Int     @id @default(autoincrement())
+  comment       Comment @relation(fields: [commentId], references: [id])
+  commentId     Int
+  likedBy       User    @relation(fields: [likedByUserId], references: [id])
+  likedByUserId Int
+}
+
+model Retweet {
+  id          Int  @id @default(autoincrement())
+  post        Post @relation(fields: [postId], references: [id])
+  postId      Int
+  user        User @relation(fields: [retweetedBy], references: [id])
+  retweetedBy Int
+}
