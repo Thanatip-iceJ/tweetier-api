@@ -6,6 +6,7 @@ const morgan = require("morgan");
 const notFoundMw = require("./middlewares/not-found");
 const errorMw = require("./middlewares/error");
 const authRoute = require("./routes/auth-route");
+const userRoute = require("./routes/user-route");
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 app.use("/auth", authRoute);
+app.use("/user", userRoute);
 
 app.use(notFoundMw);
 app.use(errorMw);
