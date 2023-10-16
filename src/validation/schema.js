@@ -27,3 +27,7 @@ exports.loginSchema = Joi.object({
     .pattern(/^[a-zA-Z0-9]{3,30}$/)
     .required(),
 });
+
+exports.userIdSchema = Joi.object({
+  userId: Joi.number().integer().positive().required(),
+});
