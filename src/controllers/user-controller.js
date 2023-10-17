@@ -3,6 +3,22 @@ const prisma = require("../models/prisma");
 const createError = require("../utils/create-error");
 const { userIdSchema } = require("../validation/schema");
 
+const statusWithAuthUser = async (targetId, authId) => {
+  if (targetId === authId) {
+    return "AUTH";
+  }
+  const followedByAuth = await prisma.userRelationship.findFirst({
+    where: {
+      AND: [{ followedByUserId: authId }, { followedUserId: targetId }],
+    },
+  });
+  if (followedByAuth) {
+    return "FOLLOWED";
+  }
+
+  return "UNKNOWN";
+};
+
 exports.getUsers = async (req, res, next) => {
   try {
     console.log(req.user);
@@ -32,8 +48,10 @@ exports.getUserById = async (req, res, next) => {
         id: value.userId,
       },
     });
+    const statusWithAuth = await statusWithAuthUser(value.userId, req.user.id);
+
     delete user.password;
-    res.status(200).json(user);
+    res.status(200).json({ user, statusWithAuth });
   } catch (err) {
     next(err);
   }

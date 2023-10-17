@@ -8,6 +8,7 @@ const errorMw = require("./middlewares/error");
 const authRoute = require("./routes/auth-route");
 const userRoute = require("./routes/user-route");
 const postRoute = require("./routes/post-route");
+const followRoute = require("./routes/follow-route");
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use("/auth", authRoute);
 app.use("/user", userRoute);
 app.use("/post", postRoute);
+app.use("/follow", followRoute);
 
 app.use(notFoundMw);
 app.use(errorMw);

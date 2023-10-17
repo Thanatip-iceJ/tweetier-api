@@ -31,3 +31,7 @@ exports.loginSchema = Joi.object({
 exports.userIdSchema = Joi.object({
   userId: Joi.number().integer().positive().required(),
 });
+
+exports.postIdSchema = Joi.object({
+  postId: Joi.number().integer().positive().required(),
+});
