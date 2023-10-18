@@ -1,4 +1,6 @@
 const prisma = require("../models/prisma");
+const { upload } = require("../utils/cloudinary-upload");
+const fs = require("fs/promises");
 
 const createError = require("../utils/create-error");
 const { userIdSchema } = require("../validation/schema");
@@ -54,5 +56,34 @@ exports.getUserById = async (req, res, next) => {
     res.status(200).json({ user, statusWithAuth });
   } catch (err) {
     next(err);
+  }
+};
+
+exports.editProfile = async (req, res, next) => {
+  try {
+    const response = {};
+
+    if (req.files.profileImg) {
+      console.log(req.files.profileImg);
+      const url = await upload(req.files.profileImg[0].path);
+      response.profileImg = url;
+      await prisma.user.update({
+        data: {
+          profileImg: url,
+        },
+        where: {
+          id: req.user.id,
+        },
+      });
+    }
+
+    res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+    next(err);
+  } finally {
+    if (req.files.profileImg) {
+      fs.unlink(req.files.profileImg[0].path);
+    }
   }
 };

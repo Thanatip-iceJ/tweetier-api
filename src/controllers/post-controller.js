@@ -90,3 +90,13 @@ exports.getPostById = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getPostByUserId = async (req, res, next) => {
+  const { userId } = req.params;
+  const posts = await prisma.post.findMany({
+    where: {
+      userId: +userId,
+    },
+  });
+  res.status(200).json(posts);
+};
