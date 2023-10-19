@@ -61,10 +61,16 @@ exports.getUserById = async (req, res, next) => {
 
 exports.editProfile = async (req, res, next) => {
   try {
+    const value = JSON.parse(req.body.info);
+    console.log(value);
+    console.log(req.files.coverImg);
+    console.log(req.files.profileImg);
+
     const response = {};
 
+    console.log(req.files);
     if (req.files.profileImg) {
-      console.log(req.files.profileImg);
+      console.log(req.files);
       const url = await upload(req.files.profileImg[0].path);
       response.profileImg = url;
       await prisma.user.update({
@@ -89,6 +95,20 @@ exports.editProfile = async (req, res, next) => {
       });
     }
 
+    if (value) {
+      response.info = value;
+      await prisma.user.update({
+        data: {
+          firstName: value.firstName,
+          lastName: value.lastName,
+          bio: value.bio,
+        },
+        where: {
+          id: req.user.id,
+        },
+      });
+    }
+
     res.status(200).json(response);
   } catch (err) {
     console.log(err);
@@ -96,6 +116,9 @@ exports.editProfile = async (req, res, next) => {
   } finally {
     if (req.files.profileImg) {
       fs.unlink(req.files.profileImg[0].path);
+    }
+    if (req.files.coverImg) {
+      fs.unlink(req.files.coverImg[0].path);
     }
   }
 };

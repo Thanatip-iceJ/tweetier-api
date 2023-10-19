@@ -26,6 +26,8 @@ model User {
   followedByUsers UserRelationship[] @relation("followedByUser")
   CommentLikes    CommentLike[]
   Retweets        Retweet[]
+  PostLike        PostLike[]
+  Comment         Comment[]
 }
 
 model Post {
@@ -41,13 +43,15 @@ model Post {
 }
 
 model Comment {
-  id           Int           @id @default(autoincrement())
-  contentText  String
-  contentImg   String?
-  createdAt    DateTime      @default(now())
-  post         Post          @relation(fields: [postId], references: [id])
-  postId       Int
-  CommentLikes CommentLike[]
+  id            Int           @id @default(autoincrement())
+  contentText   String
+  contentImg    String?
+  createdAt     DateTime      @default(now())
+  post          Post          @relation(fields: [postId], references: [id])
+  postId        Int
+  CommentLikes  CommentLike[]
+  user          User          @relation(fields: [commentedById], references: [id])
+  commentedById Int
 }
 
 model UserRelationship {
@@ -59,9 +63,11 @@ model UserRelationship {
 }
 
 model PostLike {
-  id     Int  @id @default(autoincrement())
-  post   Post @relation(fields: [postId], references: [id])
-  postId Int
+  id        Int  @id @default(autoincrement())
+  post      Post @relation(fields: [postId], references: [id])
+  postId    Int
+  user      User @relation(fields: [likedById], references: [id])
+  likedById Int
 }
 
 model CommentLike {
