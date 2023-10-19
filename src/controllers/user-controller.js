@@ -76,6 +76,18 @@ exports.editProfile = async (req, res, next) => {
         },
       });
     }
+    if (req.files.coverImg) {
+      const url = await upload(req.files.coverImg[0].path);
+      response.coverImg = url;
+      await prisma.user.update({
+        data: {
+          coverImg: url,
+        },
+        where: {
+          id: req.user.id,
+        },
+      });
+    }
 
     res.status(200).json(response);
   } catch (err) {
