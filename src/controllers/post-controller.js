@@ -176,6 +176,7 @@ exports.deletePost = async (req, res, next) => {
 
 exports.createComment = async (req, res, next) => {
   try {
+    console.log(req.body);
     const { error, value } = postIdSchema.validate(req.params);
     if (error) {
       next(error);
@@ -184,7 +185,6 @@ exports.createComment = async (req, res, next) => {
     await prisma.comment.create({
       data: {
         contentText: req.body.message,
-        contentImg: req.file?.path,
         postId: value.postId,
         commentedById: req.user.id,
       },
@@ -193,10 +193,6 @@ exports.createComment = async (req, res, next) => {
   } catch (err) {
     console.log(err);
     next(err);
-  } finally {
-    if (req.file) {
-      fs.unlink(req.file.path);
-    }
   }
 };
 
@@ -211,7 +207,17 @@ exports.getComments = async (req, res, next) => {
       where: {
         postId: value.postId,
       },
-      include: {},
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            username: true,
+            profileImg: true,
+            createdAt: true,
+          },
+        },
+      },
     });
     console.log(comments);
 
