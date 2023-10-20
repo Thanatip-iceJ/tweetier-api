@@ -67,6 +67,8 @@ exports.getPost = async (req, res, next) => {
             profileImg: true,
           },
         },
+        PostLikes: true,
+        Comments: true,
       },
     });
     res.status(200).json(posts);
