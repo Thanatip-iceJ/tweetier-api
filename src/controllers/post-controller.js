@@ -30,30 +30,25 @@ const getLikesByPostId = async (postId) => {
 exports.createPost = async (req, res, next) => {
   try {
     const message = JSON.parse(req.body.text);
-    const response = {};
-
-    if (!req.file) {
-      const post = await prisma.post.create({
-        data: {
-          contentText: message,
-          userId: req.user.id,
-        },
-      });
-    }
-
+    const data = { userId: req.user.id };
     if (req.file) {
-      const url = await upload(req.file.path);
-      const postWithImg = await prisma.post.create({
-        data: {
-          contentText: message,
-          contentImg: url,
-          userId: req.user.id,
-        },
-      });
-      response.post = post;
-      console.log(post);
+      data.contentImg = await upload(req.file.path);
     }
-    res.status(200).json(postWImg);
+    if (message) {
+      data.contentText = message;
+    }
+
+    const post = await prisma.post.create({
+      data: data,
+      include: {
+        user: true,
+        Comments: true,
+        PostLikes: true,
+      },
+    });
+    console.log(post);
+
+    res.status(200).json(post);
   } catch (err) {
     console.log(err);
     next(err);
