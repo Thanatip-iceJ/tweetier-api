@@ -16,5 +16,6 @@ router.patch(
   ]),
   userController.editProfile
 );
+router.get("/getfollows/:userId", userController.getFollows);
 
 module.exports = router;

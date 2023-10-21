@@ -1,6 +1,7 @@
 const path = require("path");
 const prisma = require("../models/prisma");
 const { postIdSchema } = require("../validation/schema");
+const { upload } = require("../utils/cloudinary-upload");
 const fs = require("fs/promises");
 
 const getFollowingIds = async (authId) => {
@@ -28,21 +29,38 @@ const getLikesByPostId = async (postId) => {
 
 exports.createPost = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    // console.log(req.body);
-    // console.log(userId);
-    const { message } = req.body;
-    // console.log(body);
-    await prisma.post.create({
-      data: {
-        contentText: message,
-        userId: userId,
-      },
-    });
-    res.status(200).json({ message: "Posted successfully" });
+    const message = JSON.parse(req.body.text);
+    const response = {};
+
+    if (!req.file) {
+      const post = await prisma.post.create({
+        data: {
+          contentText: message,
+          userId: req.user.id,
+        },
+      });
+    }
+
+    if (req.file) {
+      const url = await upload(req.file.path);
+      const postWithImg = await prisma.post.create({
+        data: {
+          contentText: message,
+          contentImg: url,
+          userId: req.user.id,
+        },
+      });
+      response.post = post;
+      console.log(post);
+    }
+    res.status(200).json(postWImg);
   } catch (err) {
     console.log(err);
     next(err);
+  } finally {
+    if (req.file) {
+      fs.unlink(req.file.path);
+    }
   }
 };
 
@@ -81,7 +99,7 @@ exports.getPost = async (req, res, next) => {
 exports.getPostById = async (req, res, next) => {
   try {
     const { error, value } = postIdSchema.validate(req.params);
-    // console.log(value);
+    console.log(value);
     if (error) {
       next(error);
       return;
@@ -102,6 +120,8 @@ exports.getPostById = async (req, res, next) => {
             profileImg: true,
           },
         },
+        PostLikes: true,
+        Comments: true,
       },
     });
     res.status(200).json(post);
@@ -116,6 +136,11 @@ exports.getPostByUserId = async (req, res, next) => {
   const posts = await prisma.post.findMany({
     where: {
       userId: +userId,
+    },
+    include: {
+      user: true,
+      PostLikes: true,
+      Comments: true,
     },
   });
   res.status(200).json(posts);
@@ -210,15 +235,7 @@ exports.getComments = async (req, res, next) => {
         postId: value.postId,
       },
       include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-            username: true,
-            profileImg: true,
-            createdAt: true,
-          },
-        },
+        user: true,
       },
     });
     console.log(comments);

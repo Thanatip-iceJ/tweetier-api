@@ -5,7 +5,12 @@ const postController = require("../controllers/post-controller");
 const authenticate = require("../middlewares/authenticate");
 const uploadMw = require("../middlewares/upload");
 
-router.post("/createpost", authenticate, postController.createPost);
+router.post(
+  "/createpost",
+  authenticate,
+  uploadMw.single("img"),
+  postController.createPost
+);
 router.get("/getposts", authenticate, postController.getPost);
 router.get("/getpostbyid/:postId", postController.getPostById);
 router.get("/getpostbyuserid/:userId", postController.getPostByUserId);

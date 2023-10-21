@@ -21,13 +21,43 @@ const statusWithAuthUser = async (targetId, authId) => {
   return "UNKNOWN";
 };
 
-exports.getUsers = async (req, res, next) => {
+const followerIds = async (profileId) => {
   try {
-    console.log(req.user);
+    const relationship = await prisma.userRelationship.findMany({
+      where: {
+        followedUserId: profileId,
+      },
+    });
+    const followers = relationship.map((x) => x.followedByUserId);
+    return followers;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const followingIds = async (profileId) => {
+  try {
+    const relationship = await prisma.userRelationship.findMany({
+      where: {
+        followedByUserId: profileId,
+      },
+    });
+    const followings = relationship.map((x) => x.followedUserId);
+    return followings;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+exports.getUsers = async (req, res, next) => {
+  const followings = await followingIds(req.user.id);
+  try {
     const users = await prisma.user.findMany({
       where: {
         id: {
-          not: req.user.id,
+          not: {
+            in: [...followings, req.user.id],
+          },
         },
       },
     });
@@ -120,5 +150,22 @@ exports.editProfile = async (req, res, next) => {
     if (req.files.coverImg) {
       fs.unlink(req.files.coverImg[0].path);
     }
+  }
+};
+
+exports.getFollows = async (req, res, next) => {
+  try {
+    const { error, value } = userIdSchema.validate(req.params);
+    if (error) {
+      next(error);
+      return;
+    }
+    const followers = await followerIds(value.userId);
+    const followings = await followingIds(value.userId);
+    console.log("followers", followers);
+    console.log("followings", followings);
+    res.status(200).json({ followers, followings });
+  } catch (err) {
+    next(err);
   }
 };
