@@ -1,6 +1,6 @@
 const path = require("path");
 const prisma = require("../models/prisma");
-const { postIdSchema } = require("../validation/schema");
+const { postIdSchema, commentIdSchema } = require("../validation/schema");
 const { upload } = require("../utils/cloudinary-upload");
 const fs = require("fs/promises");
 
@@ -132,6 +132,9 @@ exports.getPostByUserId = async (req, res, next) => {
     where: {
       userId: +userId,
     },
+    orderBy: {
+      createdAt: "desc",
+    },
     include: {
       user: true,
       PostLikes: true,
@@ -185,11 +188,19 @@ exports.deletePost = async (req, res, next) => {
       next(error);
       return;
     }
-    await prisma.post.delete({
+    const isExist = await prisma.post.findFirst({
       where: {
         id: value.postId,
       },
     });
+    if (isExist) {
+      await prisma.post.delete({
+        where: {
+          id: isExist.id,
+        },
+      });
+    }
+    res.status(200).json({ message: "delete laew i sus" });
   } catch (err) {
     console.log(err);
     next(err);
@@ -204,14 +215,17 @@ exports.createComment = async (req, res, next) => {
       next(error);
       return;
     }
-    await prisma.comment.create({
+    const comment = await prisma.comment.create({
       data: {
         contentText: req.body.message,
         postId: value.postId,
         commentedById: req.user.id,
       },
+      include: {
+        user: true,
+      },
     });
-    res.status(201).json({ message: "Comment created" });
+    res.status(201).json(comment);
   } catch (err) {
     console.log(err);
     next(err);
@@ -229,6 +243,9 @@ exports.getComments = async (req, res, next) => {
       where: {
         postId: value.postId,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
       include: {
         user: true,
       },
@@ -236,6 +253,51 @@ exports.getComments = async (req, res, next) => {
     console.log(comments);
 
     res.status(200).json(comments);
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
+exports.deleteComment = async (req, res, next) => {
+  try {
+    const { error, value } = commentIdSchema.validate(req.params);
+    if (error) {
+      next(error);
+      return;
+    }
+    const isExist = await prisma.comment.findFirst({
+      where: {
+        id: value.commentId,
+      },
+    });
+    if (isExist) {
+      await prisma.comment.delete({
+        where: {
+          id: isExist.id,
+        },
+      });
+    }
+    res.status(200).json({ message: "Comment deleted" });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
+exports.getLikes = async (req, res, next) => {
+  try {
+    const { err, value } = postIdSchema.validate(req.params);
+    if (err) {
+      next(err);
+      return;
+    }
+    const likes = await prisma.postLike.findMany({
+      where: {
+        postId: value.postId,
+      },
+    });
+    res.status(200).json(likes);
   } catch (err) {
     console.log(err);
     next(err);

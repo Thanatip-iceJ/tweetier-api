@@ -23,5 +23,7 @@ router.post(
   postController.createComment
 );
 router.get("/getcomments/:postId", postController.getComments);
+router.delete("/deletecomment/:commentId", postController.deleteComment);
+router.get("/getlikes/:postId", postController.getLikes);
 
 module.exports = router;

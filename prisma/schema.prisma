@@ -47,7 +47,7 @@ model Comment {
   contentText   String
   contentImg    String?
   createdAt     DateTime      @default(now())
-  post          Post          @relation(fields: [postId], references: [id])
+  post          Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId        Int
   CommentLikes  CommentLike[]
   user          User          @relation(fields: [commentedById], references: [id])
@@ -64,7 +64,7 @@ model UserRelationship {
 
 model PostLike {
   id        Int  @id @default(autoincrement())
-  post      Post @relation(fields: [postId], references: [id])
+  post      Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    Int
   user      User @relation(fields: [likedById], references: [id])
   likedById Int

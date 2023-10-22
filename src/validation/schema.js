@@ -35,3 +35,7 @@ exports.userIdSchema = Joi.object({
 exports.postIdSchema = Joi.object({
   postId: Joi.number().integer().positive().required(),
 });
+
+exports.commentIdSchema = Joi.object({
+  commentId: Joi.number().integer().positive().required(),
+});
