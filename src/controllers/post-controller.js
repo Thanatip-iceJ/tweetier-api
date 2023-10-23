@@ -29,6 +29,7 @@ const getLikesByPostId = async (postId) => {
 
 exports.createPost = async (req, res, next) => {
   try {
+    console.log(req.file);
     const message = JSON.parse(req.body.text);
     const data = { userId: req.user.id };
     if (req.file) {
